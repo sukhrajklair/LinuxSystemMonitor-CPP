@@ -33,7 +33,7 @@ float Process::CpuUtilization() {
     //total time elapsed in seconds since the process has started
     int time_elapsed = sys_uptime - uptime;
     cpu_util = static_cast<float>(total_time)/time_elapsed;;
-    return cpu_util;
+    return cpu_util*100;
 }
 
 //Return the command that generated this process

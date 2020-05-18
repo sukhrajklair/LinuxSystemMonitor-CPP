@@ -117,16 +117,15 @@ std::pair<int, int> LinuxParser::CpuUtilization() {
   int total, idle_all, non_idle;
   string line, token;
   std::ifstream stream(kProcDirectory + kStatFilename);
-  std::istringstream lineStream(line);
+  
   while (stream.is_open() && token != "cpu")
   {
     //first line contains the CPU utilization data
     std::getline(stream, line);
-    lineStream.str(line);
+    std::istringstream lineStream(line);
     //stream the line to extract the parameters
-    lineStream >> token;
+    lineStream >> token >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
   }
-    lineStream >> user >> nice >> system >> idle >> iowait >> irq >> softirq >> steal;
     idle_all = idle+iowait;
     non_idle = user + nice + system + irq + softirq + steal; 
     total = idle_all + non_idle;
@@ -180,9 +179,8 @@ string LinuxParser::Ram(int pid) {
   int ram;
   std::ifstream stream(kProcDirectory + to_string(pid) + kStatusFilename);
   std::istringstream linestream(" ");
-  while(stream.is_open() && token != "VmSize:")
+  while(stream.is_open() && getline(stream,line) && token != "VmSize:")
   {
-    std::getline(stream,line);
     linestream.str(line);
     linestream >> token;
   }
@@ -196,9 +194,8 @@ string LinuxParser::Uid(int pid) {
   string line, token, uid;
   std::ifstream stream(kProcDirectory + to_string(pid) + kStatusFilename);
   std::istringstream linestream(line);
-  while(stream.is_open() && token != "Uid:")
+  while(stream.is_open() && getline(stream,line) && token != "Uid:")
   {
-    std::getline(stream,line);
     linestream.str(line);
     linestream >> token;
   }
@@ -224,21 +221,25 @@ string LinuxParser::User(int pid) {
  }
 
 //Read and return the uptime of a process
-long LinuxParser::UpTime(int pid[[maybe_unused]]) { return 0; }
+//long LinuxParser::UpTime(int pid) { return 0; }
 
 // Read and return process CPU utilization
 std::map<int,long> LinuxParser::ProcessStatParser(int pid) { 
-  string line;
+  string line, word;
   long token;
-  std::ifstream stream(kProcDirectory + to_string(pid) + kStatFilename);
+  string file = kProcDirectory + to_string(pid) + kStatFilename;
+  std::ifstream stream( file );
   std::map<int, long> tokens;
   if(stream.is_open())
   {
     std::getline(stream, line);
     std::istringstream lineStream(line);
+    //extract first 22 tokens from the line
     int c = 1;
-    while(lineStream >> token)
+    while(lineStream >> word)
     {
+      std::istringstream wordstream(word);
+      wordstream >> token;
       tokens[c] = token;
       c++;
     }

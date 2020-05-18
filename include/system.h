@@ -9,6 +9,7 @@
 
 class System {
  public:
+  System();
   Processor& Cpu();                   //See src/system.cpp
   std::vector<Process>& Processes();  //See src/system.cpp
   float MemoryUtilization();          //See src/system.cpp
