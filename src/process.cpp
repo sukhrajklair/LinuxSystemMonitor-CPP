@@ -16,7 +16,7 @@ int Process::Pid() { return pid_; }
 
 //Return this process's CPU utilization
 float Process::CpuUtilization() { 
-    int sys_uptime, utime, stime, cutime, cstime, total_time ;
+    int utime, stime, cutime, cstime, total_time ;
     
     //processor stats
     std::map<int, long> stats = LinuxParser::ProcessStatParser(pid_);
@@ -28,11 +28,7 @@ float Process::CpuUtilization() {
     //total time in seconds (converted from clock ticks)
     total_time = (utime + stime + cutime + cstime)/sysconf(_SC_CLK_TCK);
 
-    sys_uptime = LinuxParser::UpTime();
-
-    //total time elapsed in seconds since the process has started
-    int time_elapsed = sys_uptime - uptime;
-    cpu_util = static_cast<float>(total_time)/time_elapsed;;
+    cpu_util = static_cast<float>(total_time)/uptime;
     return cpu_util;
 }
 
@@ -47,9 +43,11 @@ string Process::User() { return LinuxParser::User(pid_); }
 
 //Return the age of this process (in seconds)
 long int Process::UpTime() { 
+    int sys_uptime = LinuxParser::UpTime();
     //ProcessStatParser(pid)[22] returns starttime in clock ticks
     //divide by sysconf(_SC_CLK_TCK) to convert to seconds
-    uptime = LinuxParser::ProcessStatParser(pid_)[22]/sysconf(_SC_CLK_TCK);
+    int starttime = LinuxParser::ProcessStatParser(pid_)[22]/sysconf(_SC_CLK_TCK);
+    int uptime = sys_uptime - starttime;
     return uptime;
  }
 
